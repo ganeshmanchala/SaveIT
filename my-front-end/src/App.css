@@ -1,0 +1,33 @@
+/* styles.css */
+.main-container,
+.split-screen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.split-screen {
+  display: flex;
+}
+
+.map-container,
+.cart-container {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* Optional: Add a border between the two panels */
+.map-container {
+  border-right: 1px solid #ccc;
+}
+
+/* Style the close button inside the map */
+.map-component .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
