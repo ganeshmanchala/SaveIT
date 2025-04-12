@@ -85,8 +85,9 @@ router.post('/loginAccount',
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
         maxAge: 24 * 60 * 60 * 1000,
-        // domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : 'localhost'
-        domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : '192.168.1.113',
+        domain: process.env.NODE_ENV === 'production' 
+          ? 'save-it-ten.vercel.app' 
+          : 'localhost'
       });
 
       res.json({ success: true, username: foundData.Username });
