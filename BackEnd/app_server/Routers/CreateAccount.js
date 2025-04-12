@@ -84,10 +84,8 @@ router.post('/loginAccount',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-        maxAge: 24 * 60 * 60 * 1000,
-        domain: process.env.NODE_ENV === 'production' 
-          ? 'save-it-ten.vercel.app' 
-          : 'localhost'
+        maxAge: 24 * 60 * 60 * 1000
+        // Remove domain property entirely
       });
 
       res.json({ success: true, username: foundData.Username });
@@ -121,6 +119,8 @@ router.get('/checkAuth', async (req, res) => {
     
     res.json({ isAuthenticated: true, user });
   } catch (error) {
+    console.error('Auth check error:', error); // Add logging
+    res.clearCookie('jwt'); // Clear invalid token
     res.json({ isAuthenticated: false });
   }
 });
