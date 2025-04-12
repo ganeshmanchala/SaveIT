@@ -23,7 +23,7 @@ const Helper = () => {
 
   
   const [formData, setFormData] = useState({
-    username: localStorage.getItem('Username'),
+    username: user.Username,
     item_name: "",
     quantity: "",
     img: "",
