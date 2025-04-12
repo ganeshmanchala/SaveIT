@@ -78,11 +78,34 @@ const Acceptor = () => {
   );
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-8">
-        <div className="text-center text-orange-600">Loading available food...</div>
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-8 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          {/* Animated plate with utensils */}
+          <div className="relative w-20 h-20 mx-auto animate-bounce">
+            {/* Plate */}
+            <div className="absolute inset-0 rounded-full bg-orange-100 border-4 border-orange-200"></div>
+            {/* Fork */}
+            <div className="absolute left-2 top-6 w-6 h-8 bg-orange-300 rounded transform -rotate-45"></div>
+            {/* Spoon */}
+            <div className="absolute right-2 top-6 w-6 h-8 bg-orange-300 rounded transform rotate-45"></div>
+          </div>
+  
+          {/* Animated text */}
+          <div className="text-orange-600 font-medium animate-pulse">
+            Gathering fresh meals near you...
+          </div>
+  
+          {/* Optional loading dots animation */}
+          <div className="flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce delay-100"></div>
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce delay-200"></div>
+          </div>
+        </div>
       </div>
     );
   }
+  
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 p-8">
