@@ -124,7 +124,7 @@ const Helper = () => {
       if (response.data.success) {
         alert("Product added successfully!");
         setFormData({
-          username: localStorage.getItem('Username'),
+          username: user.Username,
           item_name: "",
           quantity: "",
           prepared: { date: "", Time: "" },
