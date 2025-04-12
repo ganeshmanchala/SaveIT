@@ -22,7 +22,7 @@ import cors from 'cors'
 const app = express();
 const server = http.createServer(app)
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://192.168.1.113:5173'], // Your frontend origin
+    origin: ['http://localhost:5173', 'http://192.168.1.113:5173','https://save-it-ten.vercel.app'], // Your frontend origin
     credentials: true
 }));
 app.use(cookieParser());
@@ -39,7 +39,7 @@ cloudinary.config({
 });
 
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-? ['https://your-production-domain.com']
+? ['https://save-it-ten.vercel.app']
 : ['http://localhost:5173', 'http://192.168.1.113:5173'];
 
 
