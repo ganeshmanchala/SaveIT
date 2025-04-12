@@ -1,4 +1,14 @@
-.navbar{
-    background: linear-gradient(to bottom,#ecdcff, white);
-    margin: 0;
-}
+/* Add to your CSS */
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .navbar-main {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  /* Mobile menu transition */
+  .md-hidden {
+    transition: all 0.3s ease-in-out;
+  }

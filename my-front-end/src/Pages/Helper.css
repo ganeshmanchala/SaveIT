@@ -1,76 +1,49 @@
-.container {
-    max-width: 500px;
-    margin: 30px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+/* Custom Font */
+@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+
+.helper-container {
+  background-image: url('https://www.transparenttextures.com/patterns/food.png');
+}
+
+.font-lobster {
+  font-family: 'Lobster', cursive;
+}
+
+/* Form Elements */
+.food-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.food-input {
+  @apply w-full px-4 py-2 border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all;
+}
+
+.location-button {
+  @apply w-full py-2 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center;
+}
+
+.submit-button {
+  @apply py-3 px-6 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-lg;
+}
+
+/* Food Card Hover Effect */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+/* Image Upload Area */
+.upload-preview {
+  border: 2px dashed #fb923c;
+  background-color: #fff7ed;
+}
+
+/* Responsive Grid */
+@media (min-width: 768px) {
+  .grid-cols-food {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
-  .title {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-  
-  .form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    font-size: 16px;
-    margin-bottom: 5px;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .row {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .column {
-    width: 48%;
-  }
-  
-  .btn {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .btn-primary {
-    background-color: #007bff;
-    color: white;
-    margin-bottom: 10px;
-  }
-  
-  .btn-primary:hover {
-    background-color: #0056b3;
-  }
-  
-  .btn-success {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .btn-success:hover {
-    background-color: #218838;
-  }
-  
+}

@@ -1,285 +1,142 @@
-import React, { useState ,useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../Components/AuthContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faLock, faEnvelope, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const Login = () => {
-  let Navigate=useNavigate();
-  // State to track the position of the mover
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
-  const [signupCredentials, setSignupCredentials] = useState({ Name: "", Username: "", Password: "", Phone: "", Email: "" })
-  const [loginCredentials, setLoginCredentials] = useState({ Username: "", Password: "" })
+  const [signupCredentials, setSignupCredentials] = useState({ 
+    Name: "", 
+    Username: "", 
+    Password: "", 
+    Phone: "", 
+    Email: "",
+    location: "" 
+  });
+  
+  const [loginCredentials, setLoginCredentials] = useState({ 
+    Username: "", 
+    Password: "" 
+  });
 
-  const signupCredentialsHandle = (e) => {
-    setSignupCredentials({ ...signupCredentials, [e.target.name]: e.target.value })
-  }
-  const loginCredentialsHandle=(e)=>{
-    setLoginCredentials({...loginCredentials,[e.target.name]:e.target.value})
-  }
-  const handleSignupClick = () => setIsSignup(true);
-  const handleLoginClick = () => setIsSignup(false);
-
-  const signupHandle = async (e) => {
+  const handleSubmit = async (e, isSignup) => {
     e.preventDefault();
-    const response = await fetch(`${apiUrl}/api/createAccount`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ Name: signupCredentials.Name, Username: signupCredentials.Username, Password: signupCredentials.Password, Phone: signupCredentials.Phone, Email: signupCredentials.Email, })
-
-    });
-
-    const json = await response.json();
-    if (!json.success) {
-      alert(json.errors[0].msg)
-    }
-    else {
-      setSignupCredentials({ Name: "", Username: "", Password: "", Phone: "", Email: "" });
-      setIsSignup(false);
-    }
-
-  }
-  const loginHandle = async(e) => {
-    e.preventDefault();
-
-    const response = await fetch(`${apiUrl}/api/loginAccount`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({Username:loginCredentials.Username,Password:loginCredentials.Password})
-    });
-
-    
-    const json = await response.json();
-    console.log(json)
-    if (!json.success) {
-      alert(json.errors[0].msg)
-    }
-    else {
-      setLoginCredentials({ Username: "", Password: "" });
-    }
-    if(json.success){
-      localStorage.setItem("authToken",json.authToken);
-       localStorage.setItem('location',location);
-       localStorage.setItem('Username',loginCredentials.Username);
-      console.log(localStorage.getItem('Username'));
-      Navigate('/');
-
-    }
-  }
-
-
-
-  const [location,setLocation]=useState('')
-
-  const fetchLocation = async() => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-
-        try {
-          const response = await axios.get(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-          );
-          const address = response.data.display_name;
-         setLocation(address);
-      
-        } catch (error) {
-          alert("Error getting address. Try again.");
-          console.error(error);
-        }
-      },
-      (error) => {
-        alert("Error getting location: " + error.message);
-        
+    try {
+      if (isSignup) {
+        await axios.post(`${apiUrl}/api/createAccount`, signupCredentials,{
+          withCredentials: true // This is crucial
+        });
+        setIsSignup(false);
+        alert('Signup successful! Please login.');
+      } else {
+        await login(loginCredentials);
+        navigate('/');
       }
-    );
+    } catch (error) {
+      alert(error.response?.data?.errors?.[0]?.msg || 'An error occurred');
+    }
   };
 
-  useEffect(() => {
-   fetchLocation();
-  }, []);
-  
+
+ 
+
   return (
-    <div className="main_login  w-full h-full flex items-center justify-center bg-cover "
-    style={{
-      backgroundImage:
-        'url("https://cdn.deepseek.com/blog/banner-background.webp")',
-    }}>
-      <div className="login w-[70%] h-auto border-black border-x flex relative">
-        {/* Signup Section */}
-        <div className="signup h-full w-[50%]">
-          <div className="heading border-b-2 border-orange-500 w-full h-16 flex  items-center text-orange-500 font-bold text-2xl justify-center">
-            SIGNUP
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
+      <div className={`relative bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden transition-all duration-500 ${isSignup ? 'h-[650px]' : 'h-[500px]'}`}>
+        
+        {/* Signup Form */}
+        <div className={`absolute w-1/2 left-0 top-0 h-full bg-white transition-all duration-500 ${isSignup ? 'translate-x-full opacity-100' : 'opacity-0'}`}>
+          <div className="p-8 h-full flex flex-col justify-center">
+            <h2 className="text-3xl font-bold text-orange-600 mb-8 text-center">Sign Up</h2>
+            <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
+              {['Name', 'Email', 'Phone', 'Username', 'Password'].map((field) => (
+                <div key={field} className="flex items-center bg-orange-50 rounded-lg p-3">
+                  <FontAwesomeIcon 
+                    icon={
+                      field === 'Name' ? faUser :
+                      field === 'Email' ? faEnvelope :
+                      field === 'Phone' ? faPhone :
+                      field === 'Username' ? faUser : faLock
+                    } 
+                    className="text-orange-500 mr-3"
+                  />
+                  <input
+                    type={field === 'Password' ? 'password' : 'text'}
+                    name={field}
+                    placeholder={field}
+                    value={signupCredentials[field]}
+                    onChange={(e) => setSignupCredentials({ ...signupCredentials, [field]: e.target.value })}
+                    className="w-full bg-transparent outline-none"
+                    required
+                  />
+                </div>
+              ))}
+              <div className="flex items-center bg-orange-50 rounded-lg p-3">
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-orange-500 mr-3" />
+                <input
+                  type="text"
+                  value={signupCredentials.location}
+                  readOnly
+                  placeholder="Detected location"
+                  className="w-full bg-transparent outline-none"
+                />
+              </div>
+              <button type="submit" className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition">
+                Create Account
+              </button>
+            </form>
           </div>
-          <form onSubmit={signupHandle} className="form w-full h-full text-center p-7">
-            <table className="w-full text-center mb-5">
-              <tbody>
-              <tr className="w-full">
-                <td className="w-[50%] h-14 font-bold">
-                  <label htmlFor="name">Name</label>
-                </td>
-                <td className="w-[50%] h-14">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="name"
-                    name='Name'
-                    value={signupCredentials.Name}
-                    onChange={signupCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              <tr className="w-full">
-                <td className="w-[50%] h-14 font-bold">
-                  <label htmlFor="phone">Phone no.</label>
-                </td>
-                <td className="w-[50%] h-14">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="phone"
-                    name='Phone'
-                    value={signupCredentials.Phone}
-                    onChange={signupCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              <tr className="w-full">
-                <td className="w-[50%] h-14 font-bold">
-                  <label htmlFor="email">Email</label>
-                </td>
-                <td className="w-[50%] h-14">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="email"
-                    name='Email'
-                    value={signupCredentials.Email}
-                    onChange={signupCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              <tr className="w-full">
-                <td className="w-[50%] h-14 font-bold">
-                  <label htmlFor="signup-username">Username</label>
-                </td>
-                <td className="w-[50%] h-14">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="signup-username"
-                    name='Username'
-                    value={signupCredentials.Username}
-                    onChange={signupCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              <tr className="w-full">
-                <td className="w-[50%] h-14 font-bold">
-                  <label htmlFor="signup-password">Password</label>
-                </td>
-                <td className="w-[50%] h-14">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="signup-password"
-                    name='Password'
-                    value={signupCredentials.Password}
-                    onChange={signupCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              </tbody>
-            </table>
-            <input
-              className="bg-orange-500 px-9 py-3 rounded-full text-white font-bold cursor-pointer font-mono"
-              type="submit"
-              value="SIGNUP"
-            />
-          </form>
         </div>
 
-        {/* Login Section */}
-        <div className="signin w-[50%] h-full">
-          <div className="heading border-b-2 border-orange-500 w-full h-16 flex mb-3 items-center text-orange-500 font-bold text-2xl justify-center">
-            LOGIN
+        {/* Login Form */}
+        <div className={`absolute w-1/2 left-0 top-0 h-full bg-white transition-all duration-500 `}>
+          <div className="p-8 h-full flex flex-col justify-center">
+            <h2 className="text-3xl font-bold text-orange-600 mb-8 text-center">Welcome Back!</h2>
+            <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
+              {['Username', 'Password'].map((field) => (
+                <div key={field} className="flex items-center bg-orange-50 rounded-lg p-3">
+                  <FontAwesomeIcon 
+                    icon={field === 'Username' ? faUser : faLock} 
+                    className="text-orange-500 mr-3"
+                  />
+                  <input
+                    type={field === 'Password' ? 'password' : 'text'}
+                    name={field}
+                    placeholder={field}
+                    value={loginCredentials[field]}
+                    onChange={(e) => setLoginCredentials({ ...loginCredentials, [field]: e.target.value })}
+                    className="w-full bg-transparent outline-none"
+                    required
+                  />
+                </div>
+              ))}
+              <button type="submit" className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition">
+                Sign In
+              </button>
+            </form>
           </div>
-          <form onSubmit={loginHandle} className="form w-full h-full text-center py-11 pl-4 pr-8">
-            <table className="w-full text-center mb-7">
-              <tbody>
-              <tr className="w-full">
-                <td className="w-[50%] h-24 font-bold">
-                  <label htmlFor="username">Username</label>
-                </td>
-                <td className="w-[50%] h-24">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="text"
-                    id="username"
-                    name='Username'
-                    value={loginCredentials.Username}
-                    onChange={loginCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              <tr className="w-full">
-                <td className="w-[50%] h-16 font-bold">
-                  <label htmlFor="password">Password</label>
-                </td>
-                <td className="w-[50%] h-16">
-                  <input
-                    className="border-slate-600 w-full border-[1px]"
-                    type="password"
-                    id="password"
-                    name='Password'
-                    value={loginCredentials.Password}
-                    onChange={loginCredentialsHandle}
-                  />
-                </td>
-              </tr>
-              </tbody>
-            </table>
-            <div className="flex gap-1 mx-9 pb-10">
-              <p>Don't have an account? Please</p>
-              <div onClick={handleSignupClick} className="text-orange-500 cursor-pointer">signup!</div>
-            </div>
-            <input
-              className="bg-orange-500 px-9 py-3 rounded-full cursor-pointer text-white font-bold font-mono"
-              type="submit"
-              value="Login"
-            />
-          </form>
         </div>
 
-        {/* Mover Div */}
-        <div
-          className={`mover absolute top-0 bottom-0 ${!isSignup ? 'left-0' : 'left-[50%]'
-            } w-[50%] h-100% bg-white border-black border-x-2 transition-all duration-500`}
-        >
-          <div className="w-full h-full bg-gradient-to-t from-transparent via-[#ecdcff] to-transparent flex justify-center items-center">
-            <div className="flex flex-col w-[50%] h-[50%] justify-around items-center">
-              <button
-                onClick={handleSignupClick}
-                className="bg-orange-500 rounded-full w-40 py-3 font-bold"
-              >
-                SIGNUP
-              </button>
-              <button
-                onClick={handleLoginClick}
-                className="bg-orange-500 rounded-full w-40 py-3 font-bold"
-              >
-                LOGIN
-              </button>
-            </div>
+        {/* Overlay */}
+        <div className={`absolute w-1/2 h-full top-0 left-1/2 overflow-hidden transition-all duration-500 ${isSignup ? '-translate-x-full' : ''}`}>
+          <div className="relative h-full w-full bg-gradient-to-br from-orange-400 to-orange-600 text-white p-8 flex flex-col items-center justify-center">
+            <h2 className="text-3xl font-bold mb-4">
+              {isSignup ? 'Already Have an Account?' : 'New Here?'}
+            </h2>
+            <p className="mb-8 text-center">
+              {isSignup ? 'Sign in to manage your food donations' : 'Create an account to start sharing food'}
+            </p>
+            <button 
+              onClick={() => setIsSignup(!isSignup)}
+              className="border-2 border-white px-8 py-3 rounded-full hover:bg-white hover:text-orange-600 transition"
+            >
+              {isSignup ? 'Sign In' : 'Sign Up'}
+            </button>
           </div>
         </div>
       </div>

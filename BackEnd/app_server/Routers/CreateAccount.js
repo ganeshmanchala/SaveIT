@@ -5,8 +5,9 @@ import { Accounts } from '../Accounts.js'
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose';
 
-const jwtSecrete ="This$isa%secrete*token*for?authontication";
+const jwtSecrete = process.env.JWT_SECRET;
 const app = express();
 
 const router = Router();
@@ -63,6 +64,7 @@ router.post('/loginAccount',
     const username = req.body.Username;
     const password = req.body.Password;
     try {
+      
       const foundData = await Accounts.findOne({ Username: username })
       if (!foundData) {
         return res.status(400).json({ errors: [{ msg: "Enter the Correct Credentials" }] });
@@ -77,13 +79,49 @@ router.post('/loginAccount',
           id:foundData.id,
         }
       }
-      const authToken=jwt.sign(data,jwtSecrete)
-      res.json({ success: true,authToken:authToken })
+      const authToken = jwt.sign(data, process.env.JWT_SECRET);
+      res.cookie('jwt', authToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        maxAge: 24 * 60 * 60 * 1000,
+        // domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : 'localhost'
+        domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : '192.168.1.113',
+      });
+
+      res.json({ success: true, username: foundData.Username });
+      
     }
     catch (error) {
-      console.log("errror during creation of the account");
-      res.json({ success: false })
+      console.error(error);
+      res.status(500).json({ success: false });
     }
   })
+
+  // Add logout route
+  router.post('/logout', (req, res) => {
+    res.clearCookie('jwt');
+    res.json({ success: true });
+  });
+
+  // Add logout route
+
+
+// Add auth check route
+router.get('/checkAuth', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.json({ isAuthenticated: false });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await Accounts.findById(decoded.user.id).select('-Password');
+    
+    if (!user) return res.json({ isAuthenticated: false });
+    
+    res.json({ isAuthenticated: true, user });
+  } catch (error) {
+    res.json({ isAuthenticated: false });
+  }
+});
 
 export const createAccount = router;

@@ -1,66 +1,120 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const [cart, setCart] = useState([]);
-    const Username = localStorage.getItem("Username"); // Assuming username is stored in localStorage
+  const { user } = useAuth();
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (Username) {
-            fetchCart();
-        }
-    }, [Username]);
+  // Get username from authenticated user
+  const username = user?.Username;
 
-    // Fetch Cart from Backend
-    const fetchCart = async () => {
-        try {
-            const response = await axios.post(`${apiUrl}/api/getMyCart`, { Username });
-            if (response.data.success) {
-                setCart(response.data.cart);
-            }
-        } catch (error) {
-            console.error("Error fetching cart:", error);
-        }
-    };
+  useEffect(() => {
+    // console.log(username)
+    if (username) {
+      fetchCart();
+    } else {
+      // Clear cart when user logs out
+      setCart([]);
+      setLoading(false);
+    }
+  }, [username]);
 
-    // Add to Cart
-    const addToCart = (item) => {
-        setCart((prevCart) => {
-            if (!prevCart.some(cartItem => cartItem._id === item._id)) {
-                const updatedCart = [...prevCart, item];
-                updateCartInBackend(updatedCart);
-                return updatedCart;
-            }
-            return prevCart;
-        });
-    };
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post(`${apiUrl}/api/getMyCart`, { 
+        username 
+      },{
+        withCredentials: true // This is crucial
+      });
+      
+      if (data.success) {
+        setCart(data.cart || []);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to load cart");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Remove from Cart
-    const removeFromCart = (item) => {
-        setCart((prevCart) => {
-            const updatedCart = prevCart.filter(cartItem => cartItem._id !== item._id);
-            updateCartInBackend(updatedCart);
-            return updatedCart;
-        });
-    };
+  const addToCart = async (item) => {
+    try {
+        const { data } = await axios.post(`${apiUrl}/api/reserveItem`, {
+            itemId: item._id,
+            username: user.Username
+          },{
+            withCredentials: true // This is crucial
+          });
+      
+          if (!data.success) throw new Error('Item no longer available');
+          
+          // Use functional update to ensure latest state
+          setCart(prev => {
+            const newCart = [...prev, { 
+              ...item,
+              expiration: data.expirationTime,
+              status: 'reserved'
+            }];
+            
+            // Fire-and-forget cart update
+            axios.post(`${apiUrl}/api/UpdateMyCart`, {
+              username: user.Username,
+              Cart: newCart
+            },{
+              withCredentials: true // This is crucial
+            }).catch(console.error);
+      
+            return newCart;
+          });
+      
+        } catch (err) {
+      // Rollback on error
+      setCart(cart);
+      setError("Failed to add item to cart");
+      throw err;
+    }
+  };
 
-    // Update Cart in Backend
-    const updateCartInBackend = async (updatedCart) => {
-        try {
-            await axios.post(`${apiUrl}/api/UpdateMyCart`, { Username, Cart: updatedCart });
-        } catch (error) {
-            console.error("Error updating cart:", error);
-        }
-    };
+  const removeFromCart = async (item) => {
+    const itemId=item._id
+    try {
+      const newCart = cart.filter(item => item._id !== itemId);
+      setCart(newCart);
+      
+      await axios.post(`${apiUrl}/api/UpdateMyCart`, {
+        username,
+        Cart: newCart
+      },{
+        withCredentials: true // This is crucial
+      });
+      
+    } catch (err) {
+      // Rollback on error
+      setCart(cart);
+      setError("Failed to remove item from cart");
+      throw err;
+    }
+  };
 
-    return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart }}>
-            {children}
-        </CartContext.Provider>
-    );
+  return (
+    <CartContext.Provider value={{ 
+      cart, 
+      addToCart, 
+      removeFromCart,
+      loading,
+      error,
+      clearError: () => setError(null)
+    }}>
+      {children}
+    </CartContext.Provider>
+  );
 };
 
 export const useCart = () => useContext(CartContext);

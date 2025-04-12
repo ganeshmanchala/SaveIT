@@ -16,7 +16,7 @@ const Logo = () => {
             font-family: 'Rubik', sans-serif;
             font-weight: 700;
             font-size: 40px;
-            fill: #7b3fe4; /* Vibrant purple color */
+            fill: #374151; 
             text-transform: lowercase;
           }
         `}

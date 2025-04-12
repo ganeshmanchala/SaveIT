@@ -1,16 +1,13 @@
 import mongoose from "mongoose";
 
 const MyCartSchema = new mongoose.Schema({
-  Username: {
+  username: { // Keep lowercase for consistency
     type: String,
     required: true,
   },
-  Cart:{
+  Cart: {
     type: Array,
-    required:true,
+    required: true,
   }
-}, {
-  collection: 'MyCart', // Specify the collection name
-});
-
+}, { collection: 'MyCart' });
 export const MyCart = mongoose.model('MyCart', MyCartSchema);

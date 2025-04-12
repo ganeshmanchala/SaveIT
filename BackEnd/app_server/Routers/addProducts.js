@@ -1,37 +1,70 @@
 import { Router } from "express";
 import { body, validationResult } from 'express-validator';
 import { Items } from "../Items.js";
-const router = Router();
-router.post('/addProduct',
-    body('username', 'Username should have at least 5 characters').isLength({ min: 5 }),
-  async (req, res) => {
-    console.log("Hello");
+import { v2 as cloudinary } from 'cloudinary';
+import cron from 'node-cron';
+import mongoose from "mongoose";
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+
+const router = Router();
+
+cron.schedule('* * * * *', async () => {
+  const expiredItems = await Items.find({
+    status: 'reserved',
+    expirationTime: { $lte: new Date() }
+  });
+
+  expiredItems.forEach(async (item) => {
+    item.status = 'available';
+    item.reservedBy = null;
+    item.reservationTime = null;
+    item.expirationTime = null;
+    await item.save();
+    broadcastUpdate(item);
+  });
+});
+router.post('/addProduct', 
+  body('username').isLength({ min: 5 }),
+  async (req, res) => {
     try {
+      let imageUrl = "";
+      
+      // Handle file upload
+      if (req.files && req.files[0]) {
+        const file = req.files[0];
+        const b64 = Buffer.from(file.buffer).toString("base64");
+        const dataURI = "data:" + file.mimetype + ";base64," + b64;
         
-      await Items.create({
-        username:req.body.username,
-        item_name:req.body.item_name,
-        quantity:req.body.quantity,
-        img:req.body.img,
-        location:req.body.location,
-        prepared:{
-            date:req.body.prepared.date,
-            Time:req.body.prepared.Time
+        const cloudResult = await cloudinary.uploader.upload(dataURI, {
+          folder: "food-donations"
+        });
+        imageUrl = cloudResult.secure_url;
+      }
+
+      // Create new item with image URL
+      const newItem = await Items.create({
+        username: req.body.username,
+        item_name: req.body.item_name,
+        quantity: req.body.quantity,
+        img: imageUrl,
+        location: {
+          lat: req.body.location.lat,
+          lon: req.body.location.lon,
+          place: req.body.location.place
+        },
+        prepared: {
+          date: req.body.preparedDate,
+          Time: req.body.preparedTime
         }
-      }).then(()=>{
-          res.json({data:req.body, success: true })
-      })
+      });
+
+      res.json({ success: true, data: newItem });
+    } catch (error) {
+      console.error("Error adding product:", error);
+      res.status(500).json({ success: false, error: error.message });
     }
-    catch (error) {
-      console.log("errror during creation of the products");
-      res.json({ success: false })
-    }
-  })
+  }
+);
 
   router.post('/removeMyProduct',
   async (req, res) => {
