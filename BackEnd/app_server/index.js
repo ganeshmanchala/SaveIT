@@ -134,54 +134,59 @@ server.on('upgrade', (request, socket, head) => {
   // Broadcast function
 
 
-const getNetworkIP = () => {
-    const interfaces = os.networkInterfaces();
-    for (const name of Object.keys(interfaces)) {
-      for (const iface of interfaces[name]) {
-        if (iface.family === 'IPv4' && !iface.internal) {
-          return iface.address;
-        }
-      }
-    }
-    return '0.0.0.0';
-  };
-// Add this middleware before your routes
-const upload = multer({ storage: multer.memoryStorage() });
-app.use(upload.any()); // For multipart/form-data
-
-const mongoURL = process.env.MONGODB_URI;
-
-mongoose
-    .connect(mongoURL)
-    .then(() => {
-        console.log("MongoDB connected");
-    })
-    .catch((err) => {
-        console.error("Error during mongoose connection", err);
-    });
-
-
-app.use(express.json())
-
-
-app.use('/api',createAccount)
-
-app.use('/api',displayProducts)
-app.use('/api',addProduct)
-app.use('/api', handleMyCart(wss));
-
-
-app.get('/', async (req, res) => {
-   
-   
-});
-
-server.listen(8000, '0.0.0.0', () => {
-    console.log(`Server running at:
-    - Local: http://localhost:8000
-    - Network: http://${getNetworkIP()}:8000`);
+  // Add this middleware before your routes
+  const upload = multer({ storage: multer.memoryStorage() });
+  app.use(upload.any()); // For multipart/form-data
+  
+  const mongoURL = process.env.MONGODB_URI;
+  
+  mongoose
+  .connect(mongoURL)
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("Error during mongoose connection", err);
   });
-
+  
+  
+  app.use(express.json())
+  
+  
+  app.use('/api',createAccount)
+  
+  app.use('/api',displayProducts)
+  app.use('/api',addProduct)
+  app.use('/api', handleMyCart(wss));
+  
+  
+  app.get('/', async (req, res) => {
+    
+    
+  });
+  // for deployment
+  const PORT = process.env.PORT || 8000;
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+  //for development
+  // server.listen(8000, '0.0.0.0', () => {
+    //     console.log(`Server running at:
+    //     - Local: http://localhost:8000
+    //     - Network: http://${getNetworkIP()}:8000`);
+    //   });
+    // const getNetworkIP = () => {
+    //     const interfaces = os.networkInterfaces();
+    //     for (const name of Object.keys(interfaces)) {
+    //       for (const iface of interfaces[name]) {
+    //         if (iface.family === 'IPv4' && !iface.internal) {
+    //           return iface.address;
+    //         }
+    //       }
+    //     }
+    //     return '0.0.0.0';
+    //   };
+    
 // app.listen(8000, '0.0.0.0', () => {
 //     console.log(`Server running at:
 //     - Local: http://localhost:8000
