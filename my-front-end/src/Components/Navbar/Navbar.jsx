@@ -5,7 +5,7 @@ import { useAuth } from '../AuthContext';
 import { useCart } from '../cartContext';
 import { useSearch } from '../SearchContext';
 import CartDrawer from '../../Pages/CartDrawer';
-import Logo from '../../assets/logo';
+import Logo from '../../assets/Logo.jsx';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
